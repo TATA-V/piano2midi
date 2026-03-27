@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piano to MIDI — AI 피아노 변환기</title>
+    <meta name="description" content="MP3/WAV 피아노 오디오를 AI로 분석하여 MIDI 파일로 변환합니다">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.77,npm/@magenta/music@1.23.1/es6/core.js,npm/html-midi-player@1.5.0"></script>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="bg-effects">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header" id="header">
+            <div class="header-glow"></div>
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">🎹</span>
+                    <span class="logo-text">Piano<span class="logo-accent">2</span>MIDI</span>
+                </div>
+                <p class="header-subtitle">AI가 피아노 음악을 분석하여 MIDI로 변환합니다</p>
+            </div>
+        </header>
+
+        <!-- Upload Section -->
+        <section class="section" id="upload-section">
+            <div class="upload-zone" id="upload-zone">
+                <div class="upload-zone-inner">
+                    <div class="upload-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <h2 class="upload-title">피아노 오디오 파일을 올려주세요</h2>
+                    <p class="upload-desc">드래그 앤 드롭 또는 클릭하여 선택</p>
+                    <p class="upload-formats">MP3 · WAV · OGG · FLAC · M4A (최대 50MB)</p>
+                    <input type="file" id="file-input" accept=".mp3,.wav,.ogg,.flac,.m4a" hidden>
+                </div>
+            </div>
+        </section>
+
+        <!-- File Info & Convert -->
+        <section class="section hidden" id="file-section">
+            <div class="card file-card">
+                <div class="file-info">
+                    <div class="file-icon">🎵</div>
+                    <div class="file-details">
+                        <h3 class="file-name" id="file-name"></h3>
+                        <p class="file-size" id="file-size"></p>
+                    </div>
+                    <button class="btn btn-ghost" id="remove-file-btn" title="파일 제거">✕</button>
+                </div>
+                <!-- Audio Player -->
+                <div class="audio-player" id="audio-player-section">
+                    <audio id="audio-player" controls></audio>
+                </div>
+                <button class="btn btn-primary btn-convert" id="convert-btn">
+                    <span class="btn-icon">⚡</span>
+                    <span>MIDI 변환 시작</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Progress Section -->
+        <section class="section hidden" id="progress-section">
+            <div class="card progress-card">
+                <div class="progress-header">
+                    <div class="progress-spinner"></div>
+                    <h3 class="progress-title" id="progress-step">변환 준비 중...</h3>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <p class="progress-percent" id="progress-percent">0%</p>
+                <p class="progress-note">⏱ AI 분석에는 1~3분 정도 소요됩니다</p>
+            </div>
+        </section>
+
+        <!-- Error Section -->
+        <section class="section hidden" id="error-section">
+            <div class="card error-card">
+                <div class="error-icon">⚠️</div>
+                <h3 class="error-title">변환 실패</h3>
+                <p class="error-message" id="error-message"></p>
+                <button class="btn btn-primary" id="retry-btn">다시 시도</button>
+            </div>
+        </section>
+
+        <!-- Result Section -->
+        <section class="section hidden" id="result-section">
+            <div class="result-header">
+                <h2 class="section-title">🎉 변환 완료</h2>
+                <div class="result-actions">
+                    <button class="btn btn-primary btn-download" id="download-btn">
+                        <span class="btn-icon">⬇</span>
+                        <span>MIDI 다운로드</span>
+                    </button>
+                    <button class="btn btn-ghost" id="new-convert-btn">새 파일 변환</button>
+                </div>
+            </div>
+
+            <!-- MIDI Player -->
+            <div class="card midi-player-card" id="midi-player-card">
+                <h3 class="card-title">🎧 MIDI 재생</h3>
+                <div class="midi-player-container">
+                    <midi-player id="midi-player" sound-font visualizer="#midi-visualizer"></midi-player>
+                    <midi-visualizer id="midi-visualizer" type="piano-roll"></midi-visualizer>
+                </div>
+            </div>
+
+            <!-- Analysis Report -->
+            <div class="card report-card" id="report-card">
+                <h3 class="card-title">📊 분석 리포트</h3>
+                <div class="report-grid" id="report-grid">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+
+            <!-- Piano Roll -->
+            <div class="card piano-roll-card" id="piano-roll-card">
+                <h3 class="card-title">🎹 피아노롤</h3>
+                <div class="piano-roll-container">
+                    <img id="piano-roll-img" alt="Piano Roll Visualization" />
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Powered by <a href="https://github.com/spotify/basic-pitch" target="_blank">basic-pitch</a> (Spotify) · Built with 🎵</p>
+        </footer>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>

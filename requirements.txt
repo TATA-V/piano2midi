@@ -1,0 +1,9 @@
+flask
+flask-cors
+basic-pitch
+pretty_midi
+matplotlib
+librosa
+numpy
+scipy
+soundfile
