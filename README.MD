@@ -8,8 +8,11 @@ Convert piano audio (MP3/WAV) into MIDI using AI (Spotify Basic Pitch).
 
 #### 1. First-time setup
 
+> **Note:** Python 3.11 is required. `basic-pitch` does not support Python 3.13 due to a numpy wheel incompatibility.
+> Install it with: `brew install python@3.11`
+
 ```bash
-python -m venv venv
+python3.11 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
